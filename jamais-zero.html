@@ -70,6 +70,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 .segments{display:flex;gap:5px}
 .segments span{flex:1;height:10px;border-radius:3px;background:var(--board-dim);transition:background .25s}
 .segments span.on{background:var(--signal)}
+.segments.many{gap:3px}
 .coach{margin:0;font-size:17px;line-height:1.45;text-wrap:pretty}
 .rule{margin:0;font-size:13px;color:var(--board-muted);line-height:1.45}
 
@@ -293,11 +294,28 @@ input[type=time]{font-family:var(--font-mono);font-size:15px;padding:8px 10px;bo
   const APP_URL = 'https://claude.ai/artifact/ST3ioFurJ6HsXU39jRgFnG';
 
   const DEFAULT_HABITS = [
-    { id: 'salle',   label: 'Salle / sport',       hint: 'Même 20 minutes. Pas d\'excuse.' },
-    { id: 'travail', label: 'Bosser pour de vrai', hint: 'Une vraie session, pas trois mails et TikTok' },
-    { id: 'lecture', label: 'Lire',                hint: '10 pages. C\'est rien, fais-les.' },
-    { id: 'selfdev', label: 'Self-développement',  hint: 'Apprends un truc au lieu de stagner' },
-    { id: 'dehors',  label: "Prendre l'air",       hint: 'Sors de ta grotte' }
+    // Corps
+    { id: 'salle',      label: 'Salle / sport',             hint: 'Même 20 minutes. Pas d\'excuse.' },
+    { id: 'pompes',     label: '50 pompes',                 hint: 'Pas 30. 50.' },
+    { id: 'pas',        label: '8 000 pas',                 hint: 'Ton canapé n\'est pas une destination.' },
+    { id: 'douche',     label: 'Douche froide',             hint: '30 secondes. Arrête de pleurer.' },
+    { id: 'eau',        label: 'Boire 2 L d\'eau',          hint: 'T\'es pas un cactus.' },
+    { id: 'malbouffe',  label: 'Zéro malbouffe',            hint: 'Le kebab de 23 h, non.' },
+    { id: 'coucher',    label: 'Couché avant minuit',       hint: 'Lâche ton tel. Coche-le le lendemain, sans mentir.' },
+    // Tête
+    { id: 'travail',    label: 'Bosser pour de vrai',       hint: 'Une vraie session, pas trois mails et TikTok' },
+    { id: 'lecture',    label: 'Lire',                      hint: '10 pages. C\'est rien, fais-les.' },
+    { id: 'selfdev',    label: 'Self-développement',        hint: 'Apprends un truc au lieu de stagner' },
+    { id: 'langue',     label: 'Apprendre une langue',      hint: 'Une leçon. Même une.' },
+    { id: 'journal',    label: 'Écrire 3 lignes',           hint: 'Ce que t\'as fait, ce que tu feras demain.' },
+    { id: 'meditation', label: '10 min de méditation',      hint: 'Assieds-toi et ferme-la.' },
+    { id: 'reseaux',    label: 'Pas de réseaux avant midi', hint: 'TikTok peut attendre, ta vie non.' },
+    // Vie
+    { id: 'dehors',     label: "Prendre l'air",             hint: 'Sors de ta grotte' },
+    { id: 'chambre',    label: 'Ranger ta chambre',         hint: 'Ta chambre, c\'est ta tête.' },
+    { id: 'cuisine',    label: 'Cuisiner un vrai repas',    hint: 'Pas des pâtes au beurre.' },
+    { id: 'appel',      label: 'Appeler un proche',         hint: 'Ta mère attend toujours ton appel.' },
+    { id: 'depense',    label: 'Zéro dépense inutile',      hint: 'T\'en as pas besoin.' }
   ];
 
   // Aucune phrase gentille : c'est voulu.
@@ -574,6 +592,7 @@ input[type=time]{font-family:var(--font-mono);font-size:15px;padding:8px 10px;bo
     $('#score-label').textContent = n + (n > 1 ? ' cases cochées' : ' case cochée') + ' sur ' + N + (state.view === todayKey() ? " aujourd'hui" : ' ce jour-là');
     const seg = $('#segments');
     if (seg.children.length !== N) seg.innerHTML = '<span></span>'.repeat(N);
+    seg.classList.toggle('many', N > 10);
     [...seg.children].forEach((s, i) => s.classList.toggle('on', i < n));
     const s = currentStreak();
     $('#streak-num').textContent = s;
@@ -841,7 +860,7 @@ input[type=time]{font-family:var(--font-mono);font-size:15px;padding:8px 10px;bo
     e.preventDefault();
     const v = $('#new-habit').value.trim();
     if (!v) return;
-    if (state.draft.length >= 12) { toast('12 max. Fais déjà tout ça avant d\'en rajouter.'); return; }
+    if (state.draft.length >= 25) { toast('25 max. Fais déjà tout ça avant d\'en rajouter.'); return; }
     state.draft.push({ id: 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), label: v.slice(0, 40), hint: '' });
     renderEditor();
     $('#new-habit').focus();
