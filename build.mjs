@@ -16,6 +16,11 @@ const APP_URL_LINE = /const APP_URL = '[^']*';/;
 if (!APP_URL_LINE.test(body)) throw new Error('APP_URL introuvable dans jamais-zero.html');
 body = body.replace(APP_URL_LINE, 'const APP_URL = location.origin + location.pathname;');
 
+// Active le bloc « Activer les notifs », qui n'a de sens que sur la version GitHub.
+const WEB_FLAG = 'const IS_WEB_BUILD = false;';
+if (!body.includes(WEB_FLAG)) throw new Error('IS_WEB_BUILD introuvable dans jamais-zero.html');
+body = body.replace(WEB_FLAG, 'const IS_WEB_BUILD = true;');
+
 const html = `<!doctype html>
 <html lang="fr">
 <head>

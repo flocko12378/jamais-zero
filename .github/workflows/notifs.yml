@@ -1,0 +1,50 @@
+name: Notifs
+
+# Heures en UTC. Chaque notif a deux créneaux (heure d'été / heure d'hiver) :
+# le script n'envoie que celui qui tombe à 8 h, 14 h ou 21 h 30 à Paris.
+on:
+  schedule:
+    - cron: '0 6 * * *'
+    - cron: '0 7 * * *'
+    - cron: '0 12 * * *'
+    - cron: '0 13 * * *'
+    - cron: '30 19 * * *'
+    - cron: '30 20 * * *'
+  workflow_dispatch: # bouton « Run workflow » : envoie une notif tout de suite pour tester
+
+permissions:
+  contents: write
+
+jobs:
+  notif:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Installer web-push
+        working-directory: notifs
+        run: npm install --no-audit --no-fund
+
+      - name: Envoyer la notif
+        run: node notifs/envoyer.mjs
+        env:
+          VAPID_PRIVATE: ${{ secrets.VAPID_PRIVATE }}
+          PUSH_SUBSCRIPTION: ${{ secrets.PUSH_SUBSCRIPTION }}
+          SCHEDULE: ${{ github.event.schedule }}
+          MANUEL: ${{ github.event_name == 'workflow_dispatch' }}
+
+      # GitHub coupe les tâches planifiées d'un dépôt public après 60 jours sans commit.
+      - name: Garder les notifs actives
+        if: always()
+        run: |
+          days=$(( ( $(date +%s) - $(git log -1 --format=%ct) ) / 86400 ))
+          if [ "$days" -ge 45 ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit --allow-empty -m "Garde les notifs actives"
+            git push
+          fi

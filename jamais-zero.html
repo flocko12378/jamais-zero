@@ -176,6 +176,14 @@ input[type=time]{font-family:var(--font-mono);font-size:15px;padding:8px 10px;bo
   .rem-row .btn{grid-column:1 / -1}
 }
 
+.push{display:flex;flex-direction:column;gap:10px;padding-block:6px 14px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+.push .rem-intro{margin:0}
+.push .btn{align-self:flex-start}
+.push-steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-size:14.5px;line-height:1.5}
+.push-steps a{color:var(--accent);font-weight:600}
+.push textarea{min-height:64px;margin-top:0;font-family:var(--font-mono);font-size:11px;line-height:1.4;word-break:break-all}
+code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+
 .foot{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
 .foot .dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
 .foot[data-state="db"] .dot{background:#2EAD62}
@@ -265,7 +273,18 @@ input[type=time]{font-family:var(--font-mono);font-size:15px;padding:8px 10px;bo
 
       <section class="panel" aria-labelledby="rem-title">
         <h2 class="h2" id="rem-title">Rappels sur ton téléphone</h2>
-        <p class="rem-intro">Le site ne peut pas envoyer de notifications tout seul. Ajoute ces deux rappels à Google Agenda : ton téléphone viendra te secouer tous les jours, même site fermé.</p>
+        <div class="push" id="push" hidden>
+          <p class="rem-intro" id="push-text"></p>
+          <button type="button" class="btn primary" id="push-btn" hidden>Activer les notifs</button>
+          <div id="push-code-wrap" hidden>
+            <ol class="push-steps">
+              <li><button type="button" class="btn" id="push-copy">Copier mon code</button></li>
+              <li><a href="https://github.com/flocko12378/jamais-zero/settings/secrets/actions/new" target="_blank" rel="noopener">Ouvre cette page GitHub</a>, mets <code>PUSH_SUBSCRIPTION</code> dans Name, colle le code dans Secret, puis « Add secret ».</li>
+            </ol>
+            <textarea id="push-code" readonly rows="3" aria-label="Ton code de notifs"></textarea>
+          </div>
+        </div>
+        <p class="rem-intro" id="agenda-intro">Le site ne peut pas envoyer de notifications tout seul. Ajoute ces deux rappels à Google Agenda : ton téléphone viendra te secouer tous les jours, même site fermé.</p>
         <div class="rem-row">
           <input type="time" id="rem-morning" value="08:00" aria-labelledby="rem-m-name">
           <label for="rem-morning"><span class="rem-name" id="rem-m-name">Le matin</span><span class="rem-what">« Debout, feignasse »</span></label>
@@ -292,6 +311,10 @@ input[type=time]{font-family:var(--font-mono);font-size:15px;padding:8px 10px;bo
 
   // Lien public de la page, ajouté dans le texte des rappels Google Agenda.
   const APP_URL = 'https://claude.ai/artifact/ST3ioFurJ6HsXU39jRgFnG';
+  // build.mjs passe ce drapeau à true pour la version GitHub Pages, la seule qui peut recevoir des notifs.
+  const IS_WEB_BUILD = false;
+  // Clé publique des notifs (la clé privée est un secret GitHub, jamais dans le code).
+  const VAPID_PUBLIC = 'BPdKhJcNIpn2NNxrGfJU4NrRQLXtQKEBzXfeu8LdiehiwVE9bVfojerScxy_cm10ClN9-anhHGNyIw2EyZVJCMo';
 
   const DEFAULT_HABITS = [
     // Corps
@@ -729,6 +752,66 @@ input[type=time]{font-family:var(--font-mono);font-size:15px;padding:8px 10px;bo
     $('#gcal-evening').href = gcal('Jamais Zéro : t\'as fait quoi aujourd\'hui ?', rem.evening, 'Ouvre l\'appli et coche. Si c\'est zéro, il te reste quelques heures pour rattraper le coup.');
   }
 
+  // ---------- notifs (version GitHub uniquement) ----------
+  const PUSH_TEXT = {
+    off: 'Trois fois par jour (8 h, 14 h et 21 h 30), l\'appli vient t\'engueuler sur ton tel. Active-les, puis colle ton code dans GitHub une seule fois.',
+    on: 'Notifs activées sur ce tel. Si t\'as pas encore collé ton code dans GitHub, fais-le maintenant, sinon rien n\'arrivera.',
+    denied: 'T\'as bloqué les notifs. Réautorise-les pour Jamais Zéro dans les réglages de ton tel, puis reviens ici.',
+    ios: 'Sur iPhone, les notifs marchent seulement depuis l\'icône : bouton Partager, « Sur l\'écran d\'accueil », puis ouvre Jamais Zéro depuis ton écran d\'accueil.',
+    unsupported: 'Ce navigateur ne gère pas les notifs. Ouvre l\'appli dans Chrome sur Android, ou depuis l\'écran d\'accueil sur iPhone.'
+  };
+  function pushState(s, sub) {
+    $('#push-text').textContent = PUSH_TEXT[s];
+    $('#push-btn').hidden = s !== 'off';
+    $('#push-code-wrap').hidden = s !== 'on';
+    if (sub) $('#push-code').value = JSON.stringify(sub);
+  }
+  const withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
+  function b64uToBytes(s) {
+    const b = atob((s + '='.repeat((4 - s.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/'));
+    return Uint8Array.from(b, c => c.charCodeAt(0));
+  }
+  async function setupPush() {
+    if (!IS_WEB_BUILD) return;
+    $('#push').hidden = false;
+    $('#agenda-intro').textContent = 'Tu peux aussi ajouter des rappels Google Agenda, en plus :';
+    const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    if (!('serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window)) return pushState(ios && !standalone ? 'ios' : 'unsupported');
+    if (Notification.permission === 'denied') return pushState('denied');
+    if (Notification.permission === 'granted') {
+      try {
+        const reg = await withTimeout(navigator.serviceWorker.ready, 5000);
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) return pushState('on', sub);
+      } catch (e) {}
+    }
+    pushState('off');
+  }
+  $('#push-btn').addEventListener('click', async () => {
+    const btn = $('#push-btn');
+    btn.disabled = true;
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') { pushState(perm === 'denied' ? 'denied' : 'off'); return; }
+      const reg = await withTimeout(navigator.serviceWorker.ready, 8000);
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToBytes(VAPID_PUBLIC) });
+      pushState('on', sub);
+      toast('Notifs activées. Maintenant colle ton code dans GitHub.');
+    } catch (e) {
+      toast('Impossible d\'activer les notifs ici. Réessaie depuis l\'appli installée sur ton écran d\'accueil.');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+  $('#push-copy').addEventListener('click', () => {
+    const ta = $('#push-code');
+    const fallback = () => { ta.focus(); ta.select(); toast('Code sélectionné : fais Copier.'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).then(() => toast('Code copié. Colle-le dans GitHub.'), fallback);
+    else fallback();
+  });
+
   // ---------- effets ----------
   let toastTimer = 0;
   function toast(msg) {
@@ -923,6 +1006,7 @@ input[type=time]{font-family:var(--font-mono);font-size:15px;padding:8px 10px;bo
   renderAll();
   renderQuote();
   renderReminders();
+  setupPush();
   connect();
 })();
 </script>
