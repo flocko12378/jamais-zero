@@ -11,11 +11,6 @@ if (split < 0) throw new Error('<style> introuvable dans jamais-zero.html');
 const headExtra = src.slice(0, split).trim();
 let body = src.slice(split);
 
-// Les rappels pointent vers l'adresse GitHub du site, quelle qu'elle soit.
-const APP_URL_LINE = /const APP_URL = '[^']*';/;
-if (!APP_URL_LINE.test(body)) throw new Error('APP_URL introuvable dans jamais-zero.html');
-body = body.replace(APP_URL_LINE, 'const APP_URL = location.origin + location.pathname;');
-
 // Active le bloc « Activer les notifs », qui n'a de sens que sur la version GitHub.
 const WEB_FLAG = 'const IS_WEB_BUILD = false;';
 if (!body.includes(WEB_FLAG)) throw new Error('IS_WEB_BUILD introuvable dans jamais-zero.html');

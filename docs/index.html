@@ -67,9 +67,14 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 .day-long{font-weight:600;font-size:16px;line-height:1.3;white-space:nowrap}
 .today-btn{background:none;border:0;color:var(--accent);font-weight:600;font-size:13px;cursor:pointer;padding:2px 4px}
 
-.cols{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;align-items:start}
-@media (min-width:900px){.cols{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)}}
-.col{display:flex;flex-direction:column;gap:20px;min-width:0}
+/* Téléphone : une seule colonne, claque du jour tout en haut. Grand écran : deux colonnes. */
+.cols{display:flex;flex-direction:column;gap:20px}
+.col{display:contents}
+#quote{order:1} #board{order:2} #habits-panel{order:3} #note-panel{order:4} #stats-panel{order:5} #notifs{order:6}
+@media (min-width:900px){
+  .cols{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:start}
+  .col{display:flex;flex-direction:column;gap:20px;min-width:0}
+}
 
 /* Tableau de score */
 .board{background:var(--board);color:var(--board-ink);border-radius:20px;padding:20px 20px 22px;display:flex;flex-direction:column;gap:14px}
@@ -99,6 +104,17 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 
 /* Liste des habitudes */
 .habit-list{list-style:none;margin:0 -18px -18px;padding:0}
+.habit-list:not(:last-child){margin-bottom:0}
+.habit-list li.leaving{opacity:0;transition:height .26s ease .14s,opacity .22s ease .1s}
+.all-done{margin:6px 0 0;font-weight:600}
+.done-box{margin:6px -18px -18px;border-top:1px solid var(--line)}
+.done-box > summary{list-style:none;cursor:pointer;padding:12px 18px;font-size:14px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:10px}
+.done-box > summary::-webkit-details-marker{display:none}
+.done-box > summary::before{content:"";width:6px;height:6px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .2s}
+.done-box[open] > summary::before{transform:rotate(45deg)}
+.done-box .habit-list{margin:0}
+.done-box .habit-list li:first-child .habit{border-top:1px solid var(--line)}
+.done-box .hlabel{color:var(--muted)}
 .habit-list li + li .habit{border-top:1px solid var(--line)}
 .habit{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px;padding:14px 18px;cursor:pointer;position:relative;transition:background .15s}
 .habit-list li:last-child .habit{border-radius:0 0 var(--radius) var(--radius)}
@@ -179,25 +195,15 @@ textarea{display:block;width:100%;min-height:88px;resize:vertical;border:1px sol
 .legend .scale{display:flex;align-items:center;gap:4px}
 .legend i{width:11px;height:11px;border-radius:2px;display:inline-block}
 
-/* Rappels */
-.rem-intro{margin:4px 0 10px;font-size:14.5px;color:var(--muted);line-height:1.5}
-.rem-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px 12px;padding-block:12px;border-top:1px solid var(--line)}
-.rem-row:last-of-type{padding-bottom:0}
-.rem-row label{display:flex;flex-direction:column;min-width:0}
-.rem-row .rem-name{font-weight:600;font-size:15px;line-height:1.3}
-.rem-row .rem-what{font-size:13px;color:var(--muted);line-height:1.35}
-input[type=time]{font-family:var(--font-mono);font-size:15px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
-@media (max-width:480px){
-  .rem-row{grid-template-columns:auto minmax(0,1fr)}
-  .rem-row .btn{grid-column:1 / -1}
-}
-
-.push{display:flex;flex-direction:column;gap:10px;padding-block:6px 14px;margin-bottom:4px;border-bottom:1px solid var(--line)}
-.push .rem-intro{margin:0}
-.push .btn{align-self:flex-start}
-.push-steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-size:14.5px;line-height:1.5}
+/* Notifs (version GitHub uniquement) */
+.notifs{display:flex;flex-direction:column;gap:10px}
+.notifs-text{margin:0;font-size:14.5px;color:var(--muted);line-height:1.5}
+.notifs > .btn{align-self:flex-start}
+.push-details > summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:14px;padding-block:2px}
+.push-details[open] > summary{margin-bottom:10px}
+.push-steps{margin:0 0 10px;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-size:14.5px;line-height:1.5}
 .push-steps a{color:var(--accent);font-weight:600}
-.push textarea{min-height:64px;margin-top:0;font-family:var(--font-mono);font-size:11px;line-height:1.4;word-break:break-all}
+.notifs textarea{min-height:64px;margin-top:0;font-family:var(--font-mono);font-size:11px;line-height:1.4;word-break:break-all}
 code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
 
 .foot{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
@@ -244,7 +250,7 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
         <p class="rule">Une seule règle : pas de journée à zéro. Une case suffit. Même toi, t'es capable de ça.</p>
       </section>
 
-      <section class="panel" aria-labelledby="habits-title">
+      <section class="panel" id="habits-panel" aria-labelledby="habits-title">
         <div class="panel-head">
           <h2 class="h2" id="habits-title">Ta liste</h2>
           <button type="button" class="link-btn" id="edit-btn">Modifier</button>
@@ -252,7 +258,7 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
         <div id="habits"></div>
       </section>
 
-      <section class="panel">
+      <section class="panel" id="note-panel">
         <label for="note" class="h2" id="note-title">T'as fait quoi de bien aujourd'hui ?</label>
         <textarea id="note" maxlength="500" placeholder="Écris-le. Si t'as rien à mettre, c'est que t'as rien fait."></textarea>
         <p class="note-status" id="note-status"></p>
@@ -269,7 +275,7 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
         <button type="button" class="btn" id="quote-next">Une autre</button>
       </section>
 
-      <section class="panel" aria-labelledby="stats-title">
+      <section class="panel" id="stats-panel" aria-labelledby="stats-title">
         <h2 class="h2" id="stats-title">Ton historique</h2>
         <dl class="stats">
           <div><dt>Série en cours</dt><dd id="st-streak">0</dd></div>
@@ -287,30 +293,18 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
         </div>
       </section>
 
-      <section class="panel" aria-labelledby="rem-title">
-        <h2 class="h2" id="rem-title">Rappels sur ton téléphone</h2>
-        <div class="push" id="push" hidden>
-          <p class="rem-intro" id="push-text"></p>
-          <button type="button" class="btn primary" id="push-btn" hidden>Activer les notifs</button>
-          <div id="push-code-wrap" hidden>
-            <ol class="push-steps">
-              <li><button type="button" class="btn" id="push-copy">Copier mon code</button></li>
-              <li><a href="https://github.com/flocko12378/jamais-zero/settings/secrets/actions/new" target="_blank" rel="noopener">Ouvre cette page GitHub</a>, mets <code>PUSH_SUBSCRIPTION</code> dans Name, colle le code dans Secret, puis « Add secret ».</li>
-            </ol>
-            <textarea id="push-code" readonly rows="3" aria-label="Ton code de notifs"></textarea>
-          </div>
-        </div>
-        <p class="rem-intro" id="agenda-intro">Le site ne peut pas envoyer de notifications tout seul. Ajoute ces deux rappels à Google Agenda : ton téléphone viendra te secouer tous les jours, même site fermé.</p>
-        <div class="rem-row">
-          <input type="time" id="rem-morning" value="08:00" aria-labelledby="rem-m-name">
-          <label for="rem-morning"><span class="rem-name" id="rem-m-name">Le matin</span><span class="rem-what">« Debout, feignasse »</span></label>
-          <a class="btn primary" id="gcal-morning" href="https://calendar.google.com/" target="_blank" rel="noopener">Ajouter à Google Agenda <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></a>
-        </div>
-        <div class="rem-row">
-          <input type="time" id="rem-evening" value="21:30" aria-labelledby="rem-e-name">
-          <label for="rem-evening"><span class="rem-name" id="rem-e-name">Le soir</span><span class="rem-what">« T'as fait quoi aujourd'hui ? »</span></label>
-          <a class="btn primary" id="gcal-evening" href="https://calendar.google.com/" target="_blank" rel="noopener">Ajouter à Google Agenda <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></a>
-        </div>
+      <section class="panel notifs" id="notifs" hidden aria-labelledby="notifs-title">
+        <h2 class="h2" id="notifs-title">Notifs</h2>
+        <p class="notifs-text" id="push-text"></p>
+        <button type="button" class="btn primary" id="push-btn" hidden>Activer les notifs</button>
+        <details class="push-details" id="push-code-wrap" hidden>
+          <summary>Mon code pour GitHub</summary>
+          <ol class="push-steps">
+            <li><button type="button" class="btn" id="push-copy">Copier mon code</button></li>
+            <li><a href="https://github.com/flocko12378/jamais-zero/settings/secrets/actions/new" target="_blank" rel="noopener">Ouvre cette page GitHub</a>, mets <code>PUSH_SUBSCRIPTION</code> dans Name, colle le code dans Secret, puis « Add secret ».</li>
+          </ol>
+          <textarea id="push-code" readonly rows="3" aria-label="Ton code de notifs"></textarea>
+        </details>
       </section>
     </div>
   </div>
@@ -325,8 +319,6 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
 (() => {
   'use strict';
 
-  // Lien public de la page, ajouté dans le texte des rappels Google Agenda.
-  const APP_URL = location.origin + location.pathname;
   // build.mjs passe ce drapeau à true pour la version GitHub Pages, la seule qui peut recevoir des notifs.
   const IS_WEB_BUILD = true;
   // Clé publique des notifs (la clé privée est un secret GitHub, jamais dans le code).
@@ -345,7 +337,6 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
     { id: 'travail',    label: 'Bosser pour de vrai',       hint: 'Une vraie session, pas trois mails et TikTok' },
     { id: 'lecture',    label: 'Lire',                      hint: '10 pages. C\'est rien, fais-les.' },
     { id: 'selfdev',    label: 'Self-développement',        hint: 'Apprends un truc au lieu de stagner' },
-    { id: 'langue',     label: 'Apprendre une langue',      hint: 'Une leçon. Même une.' },
     { id: 'journal',    label: 'Écrire 3 lignes',           hint: 'Ce que t\'as fait, ce que tu feras demain.' },
     { id: 'meditation', label: '10 min de méditation',      hint: 'Assieds-toi et ferme-la.' },
     { id: 'reseaux',    label: 'Pas de réseaux avant midi', hint: 'TikTok peut attendre, ta vie non.' },
@@ -653,6 +644,16 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
     return html;
   }
 
+  function habitRow(h, on) {
+    return '<li><label class="habit' + (on ? ' on' : '') + '" for="h-' + h.id + '">' +
+      '<input type="checkbox" id="h-' + h.id + '" data-id="' + h.id + '"' + (on ? ' checked' : '') + '>' +
+      '<span class="box" aria-hidden="true">' + CHECK + '</span>' +
+      '<span class="htext"><span class="hlabel">' + esc(h.label) + '</span>' + (h.hint ? '<span class="hsub">' + esc(h.hint) + '</span>' : '') + '</span>' +
+      '<span class="dots" title="Les 7 derniers jours" aria-hidden="true">' + dotsFor(h.id) + '</span>' +
+      '</label></li>';
+  }
+
+  // Les cases cochées quittent la liste et vont dans « Fait » (replié), pour pouvoir décocher une erreur.
   function renderHabits() {
     const el = $('#habits');
     $('#edit-btn').hidden = state.editing;
@@ -660,15 +661,19 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
     if (!state.habits.length) { el.innerHTML = '<p class="empty">Aucune habitude. Touche « Modifier » pour en ajouter.</p>'; return; }
     const fid = document.activeElement && document.activeElement.id;
     const day = state.days[state.view];
-    el.innerHTML = '<ul class="habit-list">' + state.habits.map(h => {
-      const on = !!(day && day.done && day.done[h.id] === true);
-      return '<li><label class="habit' + (on ? ' on' : '') + '" for="h-' + h.id + '">' +
-        '<input type="checkbox" id="h-' + h.id + '" data-id="' + h.id + '"' + (on ? ' checked' : '') + '>' +
-        '<span class="box" aria-hidden="true">' + CHECK + '</span>' +
-        '<span class="htext"><span class="hlabel">' + esc(h.label) + '</span>' + (h.hint ? '<span class="hsub">' + esc(h.hint) + '</span>' : '') + '</span>' +
-        '<span class="dots" title="Les 7 derniers jours" aria-hidden="true">' + dotsFor(h.id) + '</span>' +
-        '</label></li>';
-    }).join('') + '</ul>';
+    const isOn = h => !!(day && day.done && day.done[h.id] === true);
+    const todo = state.habits.filter(h => !isOn(h));
+    const done = state.habits.filter(isOn);
+    el.innerHTML =
+      (todo.length
+        ? '<ul class="habit-list">' + todo.map(h => habitRow(h, false)).join('') + '</ul>'
+        : '<p class="all-done">Tout est coché. Pour une fois, rien à redire.</p>') +
+      (done.length
+        ? '<details class="done-box" id="done-box"' + (state.doneOpen ? ' open' : '') + '><summary>Fait (' + done.length + ')</summary>' +
+          '<ul class="habit-list">' + done.map(h => habitRow(h, true)).join('') + '</ul></details>'
+        : '');
+    const box = $('#done-box');
+    if (box) box.addEventListener('toggle', () => { state.doneOpen = box.open; });
     if (fid && fid.startsWith('h-')) { const f = document.getElementById(fid); if (f) f.focus(); }
   }
 
@@ -739,47 +744,20 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
     renderStats();
   }
 
-  // ---------- rappels ----------
-  const rem = Object.assign({ morning: '08:00', evening: '21:30' }, LS.get('rem', {}));
-  const TIME = /^\d{2}:\d{2}$/;
-  function gcal(title, time, details) {
-    const [h, m] = (TIME.test(time) ? time : '08:00').split(':').map(Number);
-    const s = new Date();
-    s.setHours(h, m, 0, 0);
-    if (s <= new Date()) s.setDate(s.getDate() + 1);
-    const e = new Date(s.getTime() + 15 * 60000);
-    const f = d => '' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + 'T' + pad(d.getHours()) + pad(d.getMinutes()) + '00';
-    let tz = 'Europe/Paris';
-    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || tz; } catch (err) {}
-    const p = new URLSearchParams({
-      action: 'TEMPLATE',
-      text: title,
-      dates: f(s) + '/' + f(e),
-      details: details + (APP_URL ? '\n\n' + APP_URL : ''),
-      ctz: tz,
-      recur: 'RRULE:FREQ=DAILY'
-    });
-    return 'https://calendar.google.com/calendar/render?' + p.toString();
-  }
-  function renderReminders() {
-    $('#rem-morning').value = TIME.test(rem.morning) ? rem.morning : '08:00';
-    $('#rem-evening').value = TIME.test(rem.evening) ? rem.evening : '21:30';
-    $('#gcal-morning').href = gcal('Jamais Zéro : debout, feignasse', rem.morning, 'Une case. Maintenant. Pas dans cinq minutes.');
-    $('#gcal-evening').href = gcal('Jamais Zéro : t\'as fait quoi aujourd\'hui ?', rem.evening, 'Ouvre l\'appli et coche. Si c\'est zéro, il te reste quelques heures pour rattraper le coup.');
-  }
-
   // ---------- notifs (version GitHub uniquement) ----------
   const PUSH_TEXT = {
     off: 'Trois fois par jour (8 h, 14 h et 21 h 30), l\'appli vient t\'engueuler sur ton tel. Active-les, puis colle ton code dans GitHub une seule fois.',
-    on: 'Notifs activées sur ce tel. Si t\'as pas encore collé ton code dans GitHub, fais-le maintenant, sinon rien n\'arrivera.',
+    on: 'Notifs activées sur ce tel : 8 h, 14 h et 21 h 30. Colle ton code dans GitHub si c\'est pas déjà fait, sinon rien n\'arrivera.',
     denied: 'T\'as bloqué les notifs. Réautorise-les pour Jamais Zéro dans les réglages de ton tel, puis reviens ici.',
     ios: 'Sur iPhone, les notifs marchent seulement depuis l\'icône : bouton Partager, « Sur l\'écran d\'accueil », puis ouvre Jamais Zéro depuis ton écran d\'accueil.',
     unsupported: 'Ce navigateur ne gère pas les notifs. Ouvre l\'appli dans Chrome sur Android, ou depuis l\'écran d\'accueil sur iPhone.'
   };
-  function pushState(s, sub) {
+  function pushState(s, sub, fresh) {
     $('#push-text').textContent = PUSH_TEXT[s];
     $('#push-btn').hidden = s !== 'off';
-    $('#push-code-wrap').hidden = s !== 'on';
+    const wrap = $('#push-code-wrap');
+    wrap.hidden = s !== 'on';
+    if (fresh) wrap.open = true;
     if (sub) $('#push-code').value = JSON.stringify(sub);
   }
   const withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
@@ -789,8 +767,7 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
   }
   async function setupPush() {
     if (!IS_WEB_BUILD) return;
-    $('#push').hidden = false;
-    $('#agenda-intro').textContent = 'Tu peux aussi ajouter des rappels Google Agenda, en plus :';
+    $('#notifs').hidden = false;
     const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
     if (!('serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window)) return pushState(ios && !standalone ? 'ios' : 'unsupported');
@@ -813,7 +790,7 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
       const reg = await withTimeout(navigator.serviceWorker.ready, 8000);
       let sub = await reg.pushManager.getSubscription();
       if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64uToBytes(VAPID_PUBLIC) });
-      pushState('on', sub);
+      pushState('on', sub, true);
       toast('Notifs activées. Maintenant colle ton code dans GitHub.');
     } catch (e) {
       toast('Impossible d\'activer les notifs ici. Réessaie depuis l\'appli installée sur ton écran d\'accueil.');
@@ -876,6 +853,7 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
   }
 
   // ---------- actions ----------
+  let leaveTimer = 0;
   function toggle(id, on, input) {
     if (state.view > todayKey()) return;
     const cur = state.days[state.view] || { done: {} };
@@ -885,14 +863,27 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
     setDay(state.view, { done });
     const after = doneNow(state.days[state.view]);
     const row = input.closest('.habit');
-    if (row) {
-      row.classList.toggle('on', on);
-      const last = row.querySelector('.dots i:last-child');
-      if (last) last.classList.toggle('on', on);
-    }
+    if (row) row.classList.toggle('on', on);
     renderBoard();
     renderStats();
     if (on && after === state.habits.length && before < after) burst();
+
+    // Une case cochée s'efface de la liste ; une case décochée y revient tout de suite.
+    const li = input.closest('li');
+    if (!on || !li || reduced()) { renderHabits(); return; }
+    const nextLi = li.nextElementSibling;
+    const nextId = nextLi && nextLi.querySelector('input') ? nextLi.querySelector('input').id : null;
+    const hadFocus = document.activeElement === input;
+    li.style.height = li.offsetHeight + 'px';
+    li.style.overflow = 'hidden';
+    void li.offsetHeight;
+    li.classList.add('leaving');
+    li.style.height = '0px';
+    clearTimeout(leaveTimer);
+    leaveTimer = setTimeout(() => {
+      renderHabits();
+      if (hadFocus && nextId) { const f = document.getElementById(nextId); if (f) f.focus(); }
+    }, 420);
   }
 
   let noteTimer = 0, noteKey = null, noteVal = '';
@@ -988,19 +979,10 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
     const c = e.target.closest('button[data-k]');
     if (!c) return;
     goTo(c.dataset.k);
-    $('#main-col').scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
+    $('#board').scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
   });
 
   $('#quote-next').addEventListener('click', () => { state.quoteShift++; renderQuote(); });
-
-  ['morning', 'evening'].forEach(which => {
-    $('#rem-' + which).addEventListener('change', e => {
-      if (!TIME.test(e.target.value)) return;
-      rem[which] = e.target.value;
-      LS.set('rem', rem);
-      renderReminders();
-    });
-  });
 
   // Passage à minuit pendant que la page est ouverte, et ligne du coach qui suit l'heure.
   let lastToday = todayKey();
@@ -1010,7 +992,6 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
       if (state.view === lastToday) state.view = t;
       lastToday = t;
       renderQuote();
-      renderReminders();
       renderAll();
     } else {
       renderBoard();
@@ -1021,7 +1002,6 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
 
   renderAll();
   renderQuote();
-  renderReminders();
   setupPush();
   connect();
 })();
