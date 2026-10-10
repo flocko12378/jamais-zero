@@ -1,0 +1,176 @@
+{
+  "_aide": [
+    "Ton programme de muscu. Modifie les noms, séries et reps comme tu veux, puis lance « node build.mjs ».",
+    "id : garde-le identique si tu renommes un exo, sinon tu perds son historique (« Dernière fois »).",
+    "reps : [min, max] pour une fourchette (ex : [8, 12]), \"max\" pour le maximum possible.",
+    "unite : \"s\" si l'exo se compte en secondes (gainage).",
+    "detail : précision affichée après l'objectif (ex : \"par bras\"). mot : remplace « série » (ex : \"tour\").",
+    "Les jours de chaque séance se règlent dans l'appli (Modifier), sur les habitudes Push, Pull et Jambes."
+  ],
+  "seances": {
+    "push": {
+      "nom": "Push",
+      "exos": [
+        {
+          "id": "developpe-couche",
+          "nom": "Développé couché haltères",
+          "series": 4,
+          "reps": [
+            8,
+            12
+          ]
+        },
+        {
+          "id": "developpe-incline",
+          "nom": "Développé incliné haltères",
+          "series": 3,
+          "reps": [
+            8,
+            12
+          ]
+        },
+        {
+          "id": "developpe-epaules",
+          "nom": "Développé épaules haltères assis",
+          "series": 3,
+          "reps": [
+            8,
+            12
+          ]
+        },
+        {
+          "id": "elevations-laterales",
+          "nom": "Élévations latérales",
+          "series": 4,
+          "reps": [
+            12,
+            15
+          ]
+        },
+        {
+          "id": "extension-triceps",
+          "nom": "Extension triceps haltère au-dessus de la tête",
+          "series": 3,
+          "reps": [
+            10,
+            15
+          ]
+        },
+        {
+          "id": "dips",
+          "nom": "Dips",
+          "detail": "ou pompes mains serrées",
+          "series": 3,
+          "reps": "max"
+        }
+      ]
+    },
+    "pull": {
+      "nom": "Pull",
+      "exos": [
+        {
+          "id": "tractions",
+          "nom": "Tractions",
+          "detail": "ou tirage vertical",
+          "series": 4,
+          "reps": "max"
+        },
+        {
+          "id": "rowing-un-bras",
+          "nom": "Rowing haltère un bras",
+          "detail": "par bras",
+          "series": 3,
+          "reps": [
+            8,
+            12
+          ]
+        },
+        {
+          "id": "oiseau",
+          "nom": "Oiseau haltères",
+          "series": 3,
+          "reps": [
+            12,
+            15
+          ]
+        },
+        {
+          "id": "curl",
+          "nom": "Curl haltères",
+          "series": 3,
+          "reps": [
+            10,
+            12
+          ]
+        },
+        {
+          "id": "curl-marteau",
+          "nom": "Curl marteau",
+          "series": 2,
+          "reps": [
+            10,
+            12
+          ]
+        }
+      ]
+    },
+    "jambes": {
+      "nom": "Jambes",
+      "exos": [
+        {
+          "id": "goblet-squat",
+          "nom": "Goblet squat",
+          "series": 4,
+          "reps": [
+            8,
+            12
+          ]
+        },
+        {
+          "id": "souleve-roumain",
+          "nom": "Soulevé de terre roumain haltères",
+          "series": 3,
+          "reps": [
+            8,
+            12
+          ]
+        },
+        {
+          "id": "fentes",
+          "nom": "Fentes haltères",
+          "detail": "par jambe",
+          "series": 3,
+          "reps": [
+            10,
+            10
+          ]
+        },
+        {
+          "id": "mollets",
+          "nom": "Mollets debout",
+          "series": 3,
+          "reps": [
+            12,
+            15
+          ]
+        },
+        {
+          "id": "gainage",
+          "nom": "Gainage",
+          "series": 3,
+          "unite": "s"
+        },
+        {
+          "id": "curl-extension",
+          "nom": "Curl haltères + extension triceps enchaînés",
+          "mot": "tour",
+          "series": 3,
+          "reps": [
+            10,
+            12
+          ]
+        }
+      ]
+    }
+  }
+}

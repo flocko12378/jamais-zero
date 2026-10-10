@@ -17,6 +17,7 @@
   --accent:#7088FF;
   --on-accent:#090C17;
   --signal:#FFC53D;
+  --on-signal:#1A1300;
   --board:#2338E0;
   --board-ink:#FFFFFF;
   --board-muted:#CDD3FF;
@@ -54,7 +55,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 /* Téléphone : une seule colonne, claque du jour tout en haut. Grand écran : deux colonnes. */
 .cols{display:flex;flex-direction:column;gap:20px}
 .col{display:contents}
-#quote{order:1} #board{order:2} #habits-panel{order:3} #note-panel{order:4} #stats-panel{order:5} #notifs{order:6}
+#quote{order:1} #board{order:2} #habits-panel{order:3} #poids-panel{order:4} #note-panel{order:5} #stats-panel{order:6} #notifs{order:7}
 @media (min-width:900px){
   .cols{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:start}
   .col{display:flex;flex-direction:column;gap:20px;min-width:0}
@@ -117,6 +118,13 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 .dots i{width:7px;height:7px;border-radius:2px;background:var(--heat-0)}
 .dots i.on{background:var(--accent)}
 .dots i:last-child{width:9px;height:9px}
+/* Jour où l'habitude n'est pas prévue : un simple point, ni fait ni raté. */
+.dots i.off{background:radial-gradient(circle,var(--box-line) 1.3px,transparent 1.8px)}
+/* Push, Pull, Jambes : la ligne ouvre l'écran de séance au lieu de cocher. */
+button.habit{width:100%;text-align:left;background:none;border:0;border-radius:0;color:inherit;font:inherit}
+button.habit:focus-visible{outline-offset:-3px}
+.habit.seance-row{grid-template-columns:auto minmax(0,1fr) auto auto}
+.chev{width:16px;height:16px;fill:none;stroke:var(--muted);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 @media (max-width:360px){.dots{display:none}}
 .empty{margin:8px 0 0;color:var(--muted)}
 
@@ -136,6 +144,9 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 .add-row{display:flex;gap:8px}
 .add-row .field{flex:1;min-width:0}
 .edit-foot{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.jours{display:flex;gap:4px;flex-wrap:wrap}
+.jour{width:32px;height:30px;border-radius:7px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-family:var(--font-mono);font-size:12px;cursor:pointer;padding:0}
+.jour.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:500}
 
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-weight:600;font-size:14px;text-decoration:none;cursor:pointer;white-space:nowrap;line-height:1.3}
 .btn:hover{background:var(--hover)}
@@ -178,6 +189,56 @@ textarea{display:block;width:100%;min-height:88px;resize:vertical;border:1px sol
 .legend{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:10px}
 .legend .scale{display:flex;align-items:center;gap:4px}
 .legend i{width:11px;height:11px;border-radius:2px;display:inline-block}
+
+/* Poids de corps */
+.poids-row{display:flex;flex-wrap:wrap;align-items:stretch;gap:12px;margin-top:10px}
+.poids-input{display:flex;align-items:baseline;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 12px;flex:1 1 150px;min-width:0;cursor:text}
+.poids-input:focus-within{border-color:var(--accent);outline:2px solid var(--accent);outline-offset:1px}
+.poids-input input{width:100%;min-width:0;background:none;border:0;outline:none;color:var(--ink);font-family:var(--font-display);font-size:34px;line-height:1.1;font-variant-numeric:tabular-nums;padding:0}
+.poids-input input::placeholder{color:var(--box-line)}
+.poids-input span{font-size:13px;color:var(--muted);white-space:nowrap}
+.poids-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:0;flex:2 1 220px;min-width:0}
+.poids-stats div{background:var(--surface);padding:8px 12px;min-width:0}
+.poids-stats dt{font-size:12.5px;color:var(--muted);line-height:1.3}
+.poids-stats dd{margin:2px 0 0;font-family:var(--font-display);font-size:24px;line-height:1.15;font-variant-numeric:tabular-nums}
+.poids-stats dd small{display:block;font-family:var(--font-body);font-size:12px;color:var(--muted);line-height:1.3}
+.spark{display:block;width:100%;height:64px;margin-top:12px}
+.spark .area{fill:var(--accent);opacity:.14}
+.spark .line{fill:none;stroke:var(--accent);stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+#poids-panel .hint{margin-top:8px}
+
+/* Écran de séance (plein écran) */
+html.locked,html.locked body{overflow:hidden}
+.seance{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column}
+.seance-bar{display:flex;align-items:center;gap:12px;padding:calc(12px + env(safe-area-inset-top,0px)) 16px 12px;border-bottom:1px solid var(--line)}
+.seance-title{font-family:var(--font-display);font-size:30px;font-weight:400;letter-spacing:.03em;text-transform:uppercase;line-height:1;margin:2px 0 0}
+.seance-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.seance-inner,.seance-foot-in{max-width:720px;margin:0 auto;padding-inline:16px}
+.seance-inner{padding-block:16px 24px;display:flex;flex-direction:column;gap:14px}
+.seance-foot{border-top:1px solid var(--line);padding-block:12px calc(12px + env(safe-area-inset-bottom,0px))}
+.seance-go{width:100%;padding:14px;font-size:16px}
+.seance-warn{margin:0 0 10px;color:var(--danger);font-weight:600;font-size:14.5px}
+.seance-done{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-weight:600}
+.exo{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.exo-head{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start}
+.exo-num{font-family:var(--font-display);font-size:26px;line-height:1;color:var(--accent);min-width:1ch}
+.exo-name{margin:0;font-size:17px;font-weight:600;line-height:1.3;overflow-wrap:anywhere}
+.exo-goal{margin:2px 0 0;font-family:var(--font-mono);font-size:13px;color:var(--muted)}
+.badge-up{display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:3px 9px;border-radius:999px;background:var(--signal);color:var(--on-signal);font-size:12px;font-weight:700;letter-spacing:.02em}
+.badge-up svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.exo-last{margin:0;font-size:13.5px;color:var(--muted);line-height:1.45}
+.exo-last b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.sets{display:flex;flex-direction:column;gap:6px}
+.set-row{display:grid;grid-template-columns:4.6em minmax(0,1fr) minmax(0,1fr) 18px;gap:8px;align-items:center}
+.set-row.timed{grid-template-columns:4.6em minmax(0,1fr) 18px}
+.set-n{font-family:var(--font-mono);font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.set-field{display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:0 10px;min-width:0;cursor:text}
+.set-field:focus-within{border-color:var(--accent);outline:2px solid var(--accent);outline-offset:1px}
+.set-field input{width:100%;min-width:0;background:none;border:0;outline:none;color:var(--ink);font-family:var(--font-mono);font-size:17px;padding:10px 0}
+.set-field input::placeholder{color:var(--muted);opacity:.5}
+.set-field span{font-size:12px;color:var(--muted)}
+.set-ok svg{display:block;width:18px;height:18px;fill:none;stroke:var(--signal);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.exo-fill{align-self:flex-start;background:none;border:0;color:var(--accent);font-weight:600;font-size:13.5px;cursor:pointer;padding:2px 0}
 
 /* Notifs (version GitHub uniquement) */
 .notifs{display:flex;flex-direction:column;gap:10px}
@@ -259,6 +320,19 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
         <button type="button" class="btn" id="quote-next">Une autre</button>
       </section>
 
+      <section class="panel" id="poids-panel" aria-labelledby="poids-title">
+        <h2 class="h2" id="poids-title">Poids</h2>
+        <div class="poids-row">
+          <label class="poids-input" for="poids"><input id="poids" inputmode="decimal" autocomplete="off" maxlength="6" placeholder="—"><span id="poids-label">kg ce matin</span></label>
+          <dl class="poids-stats">
+            <div><dt>Moyenne 7 jours</dt><dd id="poids-avg">—</dd></div>
+            <div><dt>Évolution</dt><dd id="poids-delta">—</dd></div>
+          </dl>
+        </div>
+        <svg class="spark" id="poids-spark" viewBox="0 0 300 64" preserveAspectRatio="none" role="img" aria-label="Courbe du poids sur 30 jours" hidden></svg>
+        <p class="hint" id="poids-hint"></p>
+      </section>
+
       <section class="panel" id="stats-panel" aria-labelledby="stats-title">
         <h2 class="h2" id="stats-title">Ton historique</h2>
         <dl class="stats">
@@ -299,6 +373,18 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
 <div class="toast" id="toast" role="status" hidden></div>
 <canvas id="fx" aria-hidden="true" hidden></canvas>
 
+<section class="seance" id="seance" hidden role="dialog" aria-modal="true" aria-labelledby="seance-title">
+  <div class="seance-bar">
+    <button type="button" class="nav-btn" id="seance-close" aria-label="Fermer la séance">‹</button>
+    <div>
+      <p class="eyebrow" id="seance-date"></p>
+      <h2 class="seance-title" id="seance-title">Séance</h2>
+    </div>
+  </div>
+  <div class="seance-body" id="seance-body"></div>
+  <div class="seance-foot"><div class="seance-foot-in" id="seance-foot"></div></div>
+</section>
+
 <script>
 (() => {
   'use strict';
@@ -308,10 +394,16 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
   // Clé publique des notifs (la clé privée est un secret GitHub, jamais dans le code).
   const VAPID_PUBLIC = 'BPdKhJcNIpn2NNxrGfJU4NrRQLXtQKEBzXfeu8LdiehiwVE9bVfojerScxy_cm10ClN9-anhHGNyIw2EyZVJCMo';
 
+  // jours : 1 = lundi … 7 = dimanche. Sans « jours », l'habitude est quotidienne.
+  // Push, Pull et Jambes ouvrent la séance du même id dans programme.json.
   const DEFAULT_HABITS = [
     // Corps
-    { id: 'salle',      label: 'Salle / sport',             hint: 'Même 20 minutes. Pas d\'excuse.' },
-    { id: 'pompes',     label: '50 pompes',                 hint: 'Pas 30. 50.' },
+    { id: 'push',       label: 'Push',                      hint: 'Pecs, épaules, triceps. Les haltères vont pas se soulever toutes seules.', jours: [1, 5] },
+    { id: 'pull',       label: 'Pull',                      hint: 'Dos et bras. Tire, t\'as pas le choix.', jours: [2, 6] },
+    { id: 'jambes',     label: 'Jambes',                    hint: 'Une fois par semaine. Tu la sautes pas.', jours: [3] },
+    { id: 'pompes',     label: '50 pompes',                 hint: 'Pas 30. 50.', jours: [2, 3, 4, 6, 7] },
+    { id: 'creatine',   label: 'Créatine',                  hint: '5 g. Tous les jours, même les jours off.' },
+    { id: 'manger',     label: 'Manger pour de vrai',       hint: 'T\'es sec. 3 vrais repas, pas un kebab à 23 h.' },
     { id: 'pas',        label: '8 000 pas',                 hint: 'Ton canapé n\'est pas une destination.' },
     { id: 'douche',     label: 'Douche froide',             hint: '30 secondes. Arrête de pleurer.' },
     { id: 'eau',        label: 'Boire 2 L d\'eau',          hint: 'T\'es pas un cactus.' },
@@ -389,24 +481,108 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
   const fmtLong = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
   const fmtDay = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long' });
   const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
+  const ID_RE = /^[A-Za-z0-9_-]{1,40}$/;
+  const JOURS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+  const JOURS_LONG = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+  const fmtShort = new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+  const fmtKg = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const fmtNum = n => String(n).replace('.', ',');
+  // Accepte « 22,5 » comme « 22.5 ». Renvoie null si vide ou hors limites.
+  function parseNum(raw, max) {
+    const s = String(raw == null ? '' : raw).trim().replace(',', '.');
+    if (!s) return null;
+    const n = parseFloat(s);
+    return isFinite(n) && n >= 0 && n <= max ? Math.round(n * 100) / 100 : null;
+  }
 
   const LS = {
     get(k, fb) { try { const v = localStorage.getItem('jz.' + k); return v ? JSON.parse(v) : fb; } catch (e) { return fb; } },
     set(k, v) { try { localStorage.setItem('jz.' + k, JSON.stringify(v)); } catch (e) {} }
   };
 
+  // 0 ou 7 jours cochés = quotidienne : on ne garde pas le champ.
+  function cleanJours(j) {
+    if (!Array.isArray(j)) return null;
+    const s = [...new Set(j.filter(n => Number.isInteger(n) && n >= 1 && n <= 7))].sort((a, b) => a - b);
+    return s.length && s.length < 7 ? s : null;
+  }
   function validHabits(arr) {
     if (!Array.isArray(arr)) return null;
     const out = arr
-      .filter(h => h && typeof h.id === 'string' && /^[A-Za-z0-9_-]{1,40}$/.test(h.id) && typeof h.label === 'string' && h.label.trim())
-      .map(h => ({ id: h.id, label: h.label.slice(0, 40), hint: typeof h.hint === 'string' ? h.hint.slice(0, 60) : '' }));
+      .filter(h => h && typeof h.id === 'string' && ID_RE.test(h.id) && typeof h.label === 'string' && h.label.trim())
+      .map(h => {
+        const o = { id: h.id, label: h.label.slice(0, 40), hint: typeof h.hint === 'string' ? h.hint.slice(0, 90) : '' };
+        const j = cleanJours(h.jours);
+        if (j) o.jours = j;
+        return o;
+      });
     return out.length ? out : null;
+  }
+  const cloneHabit = h => (h.jours ? { ...h, jours: [...h.jours] } : { ...h });
+
+  // Version 2 de la liste : ajoute la muscu (Push, Pull, Jambes, Créatine, Manger), retire « Salle / sport »
+  // et sort « 50 pompes » des jours Push. Une seule fois par liste ; l'historique des cases n'est pas touché.
+  const HABITS_VERSION = 2;
+  function migrateHabits(list, from) {
+    let out = list.map(cloneHabit);
+    if (from < 2) {
+      const at = Math.max(0, out.findIndex(h => h.id === 'salle'));
+      out = out.filter(h => h.id !== 'salle');
+      const added = DEFAULT_HABITS
+        .filter(n => ['push', 'pull', 'jambes', 'creatine', 'manger'].includes(n.id) && !out.some(h => h.id === n.id))
+        .map(cloneHabit);
+      out.splice(Math.min(at, out.length), 0, ...added);
+      const p = out.find(h => h.id === 'pompes');
+      if (p && !p.jours) p.jours = [2, 3, 4, 6, 7];
+    }
+    return validHabits(out) || DEFAULT_HABITS.map(cloneHabit);
+  }
+  function loadHabits() {
+    const stored = validHabits(LS.get('habits', null));
+    if (!stored) return DEFAULT_HABITS.map(cloneHabit);
+    const v = Number(LS.get('habitsV', 1)) || 1;
+    if (v >= HABITS_VERSION) return stored;
+    const migrated = migrateHabits(stored, v);
+    LS.set('habits', migrated);
+    LS.set('habitsV', HABITS_VERSION);
+    return migrated;
+  }
+
+  // Carnet de charges : muscu[séance][exo] = [{ kg, reps } ou { s }, …], une entrée par série.
+  function cleanSet(s) {
+    if (!s || typeof s !== 'object') return {};
+    const r = {};
+    const kg = parseNum(s.kg, 1000), reps = parseNum(s.reps, 1000), sec = parseNum(s.s, 36000);
+    if (kg != null) r.kg = kg;
+    if (reps != null) r.reps = reps;
+    if (sec != null) r.s = sec;
+    return r;
+  }
+  function cleanMuscu(m) {
+    if (!m || typeof m !== 'object') return null;
+    const out = {};
+    for (const sid of Object.keys(m)) {
+      if (!ID_RE.test(sid) || !m[sid] || typeof m[sid] !== 'object') continue;
+      const exos = {};
+      for (const eid of Object.keys(m[sid])) {
+        if (!ID_RE.test(eid) || !Array.isArray(m[sid][eid])) continue;
+        const sets = m[sid][eid].slice(0, 20).map(cleanSet);
+        if (sets.some(s => Object.keys(s).length)) exos[eid] = sets;
+      }
+      if (Object.keys(exos).length) out[sid] = exos;
+    }
+    return Object.keys(out).length ? out : null;
   }
   function cleanDay(v) {
     if (!v || typeof v.date !== 'string' || !DAY_KEY.test(v.date)) return null;
     const done = {};
     if (v.done && typeof v.done === 'object') for (const k of Object.keys(v.done)) if (v.done[k] === true) done[k] = true;
-    return { date: v.date, done, note: typeof v.note === 'string' ? v.note.slice(0, 500) : '', total: Number(v.total) || 0 };
+    const out = { date: v.date, done, note: typeof v.note === 'string' ? v.note.slice(0, 500) : '', total: Number(v.total) || 0 };
+    const muscu = cleanMuscu(v.muscu);
+    if (muscu) out.muscu = muscu;
+    const poids = parseNum(v.poids, 400);
+    if (poids != null && poids >= 25) out.poids = poids;
+    return out;
   }
   function cleanDays(obj) {
     const out = {};
@@ -415,7 +591,7 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
   }
 
   const state = {
-    habits: validHabits(LS.get('habits', null)) || DEFAULT_HABITS.map(h => ({ ...h })),
+    habits: loadHabits(),
     days: cleanDays(LS.get('days', {})),
     view: todayKey(),
     editing: false,
@@ -426,7 +602,11 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
 
   // ---------- calculs ----------
   const countTrue = day => day && day.done ? Object.keys(day.done).filter(k => day.done[k] === true).length : 0;
-  const doneNow = day => state.habits.filter(h => day && day.done && day.done[h.id] === true).length;
+  const isoDow = k => ((dateOf(k).getDay() + 6) % 7) + 1;
+  const planned = (h, k) => !h.jours || h.jours.includes(isoDow(k));
+  const plannedFor = k => state.habits.filter(h => planned(h, k));
+  const isDone = (id, k) => { const d = state.days[k]; return !!(d && d.done && d.done[id] === true); };
+  const doneOn = k => plannedFor(k).filter(h => isDone(h.id, k)).length;
   const isActive = k => countTrue(state.days[k]) > 0;
   function ratio(day) {
     const n = countTrue(day);
@@ -497,19 +677,30 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
     LS.set('days', state.days);
     if (state.mode === 'db' && daysCol) {
       const d = state.days[k];
-      queueWrite('day:' + k, daysCol.doc(k), { date: d.date, done: { ...d.done }, note: d.note || '', total: d.total, updated: Date.now() }, 350);
+      const body = { date: d.date, done: { ...d.done }, note: d.note || '', total: d.total, updated: Date.now() };
+      if (d.muscu) body.muscu = JSON.parse(JSON.stringify(d.muscu));
+      if (typeof d.poids === 'number') body.poids = d.poids;
+      queueWrite('day:' + k, daysCol.doc(k), body, 350);
     }
   }
   function persistProfile() {
     LS.set('habits', state.habits);
+    LS.set('habitsV', HABITS_VERSION);
     if (state.mode === 'db' && profileRef) {
-      queueWrite('profile', profileRef, { habits: state.habits.map(h => ({ ...h })), updated: Date.now() }, 0);
+      queueWrite('profile', profileRef, { habits: state.habits.map(cloneHabit), version: HABITS_VERSION, updated: Date.now() }, 0);
     }
   }
+  // total = nombre d'habitudes prévues ce jour-là (sert au remplissage de la grille des semaines).
   function setDay(k, patch) {
     const cur = state.days[k] || { date: k, done: {}, note: '', total: 0 };
-    state.days[k] = { ...cur, ...patch, date: k, total: state.habits.length };
+    state.days[k] = { ...cur, ...patch, date: k, total: plannedFor(k).length };
     persistDay(k);
+  }
+  function setHabitDone(id, k, on) {
+    const cur = state.days[k] || { done: {} };
+    const done = { ...(cur.done || {}) };
+    if (on) done[id] = true; else delete done[id];
+    setDay(k, { done });
   }
 
   async function connect() {
@@ -530,8 +721,19 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
 
     profileRef.onSnapshot(snap => {
       if (!snap.exists || isPending('profile') || state.editing) return;
-      const hs = validHabits(snap.data().habits);
-      if (hs) { state.habits = hs; LS.set('habits', hs); }
+      const data = snap.data();
+      const hs = validHabits(data.habits);
+      if (hs) {
+        const v = Number(data.version) || 1;
+        if (v < HABITS_VERSION) {
+          state.habits = migrateHabits(hs, v);
+          persistProfile();
+        } else {
+          state.habits = hs;
+          LS.set('habits', hs);
+          LS.set('habitsV', v);
+        }
+      }
       renderAll();
     }, subError);
 
@@ -575,7 +777,8 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
 
   function coachLine(n, N) {
     const t = todayKey();
-    if (N === 0) return 'Zéro habitude dans ta liste ? Ajoute-en une avec « Modifier », feignasse.';
+    if (!state.habits.length) return 'Zéro habitude dans ta liste ? Ajoute-en une avec « Modifier », feignasse.';
+    if (N === 0) return 'Rien de prévu ce jour-là. Profites-en pas trop.';
     if (state.view !== t) {
       const date = fmtDay.format(dateOf(state.view));
       return n === 0
@@ -598,9 +801,8 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
   }
 
   function renderBoard() {
-    const day = state.days[state.view];
-    const N = state.habits.length;
-    const n = doneNow(day);
+    const N = plannedFor(state.view).length;
+    const n = doneOn(state.view);
     $('#score-num').textContent = n;
     $('#score-tot').textContent = '/' + N;
     $('#score-label').textContent = n + (n > 1 ? ' cases cochées' : ' case cochée') + ' sur ' + N + (state.view === todayKey() ? " aujourd'hui" : ' ce jour-là');
@@ -618,23 +820,30 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
   const CHECK = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
   const ICON_UP = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>';
   const ICON_DEL = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+  const ICON_CHEV = '<svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
+  const ICON_UPARROW = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>';
 
-  function dotsFor(id) {
+  // Fait = bleu, raté = carré sombre, pas prévu ce jour-là = point neutre.
+  function dotsFor(h) {
     let html = '';
     for (let i = 6; i >= 0; i--) {
-      const d = state.days[addDays(state.view, -i)];
-      html += '<i' + (d && d.done && d.done[id] === true ? ' class="on"' : '') + '></i>';
+      const k = addDays(state.view, -i);
+      html += '<i' + (isDone(h.id, k) ? ' class="on"' : planned(h, k) ? '' : ' class="off"') + '></i>';
     }
     return html;
   }
 
   function habitRow(h, on) {
-    return '<li><label class="habit' + (on ? ' on' : '') + '" for="h-' + h.id + '">' +
-      '<input type="checkbox" id="h-' + h.id + '" data-id="' + h.id + '"' + (on ? ' checked' : '') + '>' +
+    const inner =
       '<span class="box" aria-hidden="true">' + CHECK + '</span>' +
       '<span class="htext"><span class="hlabel">' + esc(h.label) + '</span>' + (h.hint ? '<span class="hsub">' + esc(h.hint) + '</span>' : '') + '</span>' +
-      '<span class="dots" title="Les 7 derniers jours" aria-hidden="true">' + dotsFor(h.id) + '</span>' +
-      '</label></li>';
+      '<span class="dots" title="Les 7 derniers jours (point = pas prévu)" aria-hidden="true">' + dotsFor(h) + '</span>';
+    if (isSeance(h)) {
+      return '<li><button type="button" class="habit seance-row' + (on ? ' on' : '') + '" id="h-' + h.id + '" data-seance="' + h.id + '"' +
+        ' aria-label="' + esc(h.label) + (on ? ', séance validée' : '') + ' : ouvrir la séance">' + inner + ICON_CHEV + '</button></li>';
+    }
+    return '<li><label class="habit' + (on ? ' on' : '') + '" for="h-' + h.id + '">' +
+      '<input type="checkbox" id="h-' + h.id + '" data-id="' + h.id + '"' + (on ? ' checked' : '') + '>' + inner + '</label></li>';
   }
 
   // Les cases cochées quittent la liste et vont dans « Fait » (replié), pour pouvoir décocher une erreur.
@@ -644,10 +853,11 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
     if (state.editing) return renderEditor();
     if (!state.habits.length) { el.innerHTML = '<p class="empty">Aucune habitude. Touche « Modifier » pour en ajouter.</p>'; return; }
     const fid = document.activeElement && document.activeElement.id;
-    const day = state.days[state.view];
-    const isOn = h => !!(day && day.done && day.done[h.id] === true);
-    const todo = state.habits.filter(h => !isOn(h));
-    const done = state.habits.filter(isOn);
+    const list = plannedFor(state.view);
+    if (!list.length) { el.innerHTML = '<p class="empty">Rien de prévu ce jour-là.</p>'; return; }
+    const isOn = h => isDone(h.id, state.view);
+    const todo = list.filter(h => !isOn(h));
+    const done = list.filter(isOn);
     el.innerHTML =
       (todo.length
         ? '<ul class="habit-list">' + todo.map(h => habitRow(h, false)).join('') + '</ul>'
@@ -665,11 +875,15 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
     const d = state.draft;
     $('#habits').innerHTML =
       '<div class="editor">' +
-      '<p class="hint">Renomme, remonte ou supprime. Ton historique est gardé.</p>' +
+      '<p class="hint">Renomme, remonte, supprime, choisis les jours. Aucun jour coché = tous les jours. Ton historique est gardé.</p>' +
       '<ol class="edit-list">' + d.map((h, i) =>
         '<li class="edit-row"><div class="edit-fields">' +
         '<input class="field" id="el-' + h.id + '" data-i="' + i + '" data-f="label" value="' + esc(h.label) + '" maxlength="40" aria-label="Nom de l\'habitude">' +
-        '<input class="field small" id="eh-' + h.id + '" data-i="' + i + '" data-f="hint" value="' + esc(h.hint || '') + '" maxlength="60" placeholder="Précision (optionnel)" aria-label="Précision">' +
+        '<input class="field small" id="eh-' + h.id + '" data-i="' + i + '" data-f="hint" value="' + esc(h.hint || '') + '" maxlength="90" placeholder="Précision (optionnel)" aria-label="Précision">' +
+        '<div class="jours" role="group" aria-label="Jours de ' + esc(h.label) + '">' + JOURS.map((l, n) => {
+          const on = !!(h.jours && h.jours.includes(n + 1));
+          return '<button type="button" class="jour' + (on ? ' on' : '') + '" data-act="jour" data-i="' + i + '" data-j="' + (n + 1) + '" aria-pressed="' + on + '" aria-label="' + JOURS_LONG[n] + '">' + l + '</button>';
+        }).join('') + '</div>' +
         '</div><div class="edit-actions">' +
         '<button type="button" class="icon-btn" data-act="up" data-i="' + i + '" aria-label="Remonter ' + esc(h.label) + '"' + (i === 0 ? ' disabled' : '') + '>' + ICON_UP + '</button>' +
         '<button type="button" class="icon-btn danger" data-act="del" data-i="' + i + '" aria-label="Supprimer ' + esc(h.label) + '">' + ICON_DEL + '</button>' +
@@ -724,8 +938,223 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
     renderHeader();
     renderBoard();
     renderHabits();
+    renderPoids();
     renderNote();
     renderStats();
+  }
+
+  // ---------- poids de corps ----------
+  const daysBetween = (a, b) => Math.round((dateOf(b) - dateOf(a)) / 864e5);
+  function weighIns(upTo) {
+    return Object.keys(state.days)
+      .filter(k => k <= upTo && typeof state.days[k].poids === 'number')
+      .sort()
+      .map(k => ({ k, v: state.days[k].poids }));
+  }
+  function avgBetween(list, from, to) {
+    const xs = list.filter(p => p.k >= from && p.k <= to).map(p => p.v);
+    return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null;
+  }
+  function renderPoids() {
+    const v = state.view;
+    const inp = $('#poids');
+    if (document.activeElement !== inp) {
+      const d = state.days[v];
+      inp.value = d && typeof d.poids === 'number' ? fmtNum(d.poids) : '';
+    }
+    $('#poids-label').textContent = v === todayKey() ? 'kg ce matin' : 'kg ce jour-là';
+
+    const list = weighIns(v);
+    const avg = avgBetween(list, addDays(v, -6), v);
+    $('#poids-avg').textContent = avg == null ? '—' : fmtKg.format(avg) + ' kg';
+
+    // Évolution : moyenne 7 jours d'aujourd'hui contre celle d'il y a 4 semaines,
+    // ou contre la première pesée du mois tant qu'il n'y a pas 4 semaines de données.
+    const month = list.filter(p => p.k >= addDays(v, -30));
+    const old = avgBetween(list, addDays(v, -34), addDays(v, -28));
+    let delta = null, since = '';
+    if (avg != null && old != null) { delta = avg - old; since = 'sur 4 semaines'; }
+    else if (avg != null && month.length >= 2) { delta = avg - month[0].v; since = 'depuis le ' + fmtDay.format(dateOf(month[0].k)); }
+    $('#poids-delta').innerHTML = delta == null ? '—'
+      : esc((delta > 0 ? '+' : delta < 0 ? '−' : '') + fmtKg.format(Math.abs(delta)) + ' kg') + '<small>' + esc(since) + '</small>';
+
+    $('#poids-hint').textContent = !list.length ? 'Pèse-toi demain matin au réveil, avant de manger. Pas après le kebab.'
+      : delta == null ? 'Pèse-toi tous les matins. La tendance arrive après quelques jours.'
+      : delta > 0.05 ? 'Ça monte. Continue de manger, c\'est exactement ce qu\'il faut.'
+      : 'Ça bouge pas. T\'es sec, mange plus. 3 vrais repas, minimum.';
+
+    const svg = $('#poids-spark');
+    // Un <svg> n'a pas de propriété .hidden : on passe par l'attribut.
+    if (month.length < 2) { svg.setAttribute('hidden', ''); svg.innerHTML = ''; return; }
+    const vals = month.map(p => p.v);
+    const lo = Math.min(...vals) - 0.3, hi = Math.max(...vals) + 0.3;
+    const X = k => 2 + (30 - daysBetween(k, v)) / 30 * 296;
+    const Y = val => 58 - (val - lo) / (hi - lo) * 52;
+    const pts = month.map(p => X(p.k).toFixed(1) + ',' + Y(p.v).toFixed(1));
+    const first = X(month[0].k).toFixed(1), last = X(month[month.length - 1].k).toFixed(1);
+    svg.innerHTML = '<path class="area" d="M' + first + ',62 L' + pts.join(' L') + ' L' + last + ',62 Z"/>' +
+      '<polyline class="line" points="' + pts.join(' ') + '"/>';
+    svg.setAttribute('aria-label', 'Poids sur 30 jours : de ' + fmtKg.format(month[0].v) + ' à ' + fmtKg.format(month[month.length - 1].v) + ' kg');
+    svg.removeAttribute('hidden');
+  }
+
+  // ---------- programme et écran de séance ----------
+  let PROGRAMME = null;
+  function validProgramme(p) {
+    if (!p || typeof p.seances !== 'object' || !p.seances) return null;
+    const seances = {};
+    for (const sid of Object.keys(p.seances)) {
+      const s = p.seances[sid];
+      if (!ID_RE.test(sid) || !s || !Array.isArray(s.exos)) continue;
+      const exos = s.exos.filter(e => e && ID_RE.test(e.id || '') && typeof e.nom === 'string' && Number.isInteger(e.series) && e.series > 0 && e.series <= 10)
+        .map(e => ({
+          id: e.id, nom: e.nom, series: e.series,
+          reps: Array.isArray(e.reps) && e.reps.length === 2 && e.reps.every(Number.isFinite) ? e.reps : e.reps === 'max' ? 'max' : null,
+          unite: e.unite === 's' ? 's' : null,
+          detail: typeof e.detail === 'string' ? e.detail : '',
+          mot: typeof e.mot === 'string' ? e.mot : ''
+        }));
+      if (exos.length) seances[sid] = { nom: typeof s.nom === 'string' ? s.nom : sid, exos };
+    }
+    return Object.keys(seances).length ? { seances } : null;
+  }
+  async function loadProgramme() {
+    try {
+      const r = await fetch('programme.json', { cache: 'no-cache' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      PROGRAMME = validProgramme(await r.json());
+    } catch (e) {
+      PROGRAMME = null;
+    }
+    if (!state.editing) renderHabits();
+  }
+  const isSeance = h => !!(PROGRAMME && PROGRAMME.seances[h.id]);
+
+  const filledSet = s => s && (s.reps != null || s.kg != null || s.s != null);
+  // La dernière séance avant ce jour où cet exo a été noté.
+  function lastSets(sid, eid, before) {
+    const keys = Object.keys(state.days).filter(k => k < before).sort().reverse();
+    for (const k of keys) {
+      const m = state.days[k].muscu;
+      const sets = m && m[sid] && m[sid][eid];
+      if (sets && sets.some(filledSet)) return { date: k, sets: sets.filter(filledSet) };
+    }
+    return null;
+  }
+  const hitTop = (exo, s) => Array.isArray(exo.reps) && s && s.reps != null && s.reps >= exo.reps[1];
+  // « Monte la charge » : la dernière fois, toutes les séries prévues ont atteint le haut de la fourchette.
+  function shouldGoUp(exo, last) {
+    if (!last || !Array.isArray(exo.reps) || exo.unite) return false;
+    const withReps = last.sets.filter(s => s.reps != null);
+    return withReps.length >= exo.series && withReps.slice(0, exo.series).every(s => hitTop(exo, s));
+  }
+  function goalText(exo) {
+    const mot = exo.mot ? ' ' + exo.mot + (exo.series > 1 ? 's' : '') : '';
+    if (exo.unite === 's') return exo.series + (mot || ' séries') + ' · en secondes';
+    const reps = exo.reps === 'max' ? 'max' : !exo.reps ? '?' : exo.reps[0] === exo.reps[1] ? exo.reps[0] : exo.reps[0] + '-' + exo.reps[1];
+    return exo.series + mot + ' × ' + reps;
+  }
+  const setLabel = (exo, i) => (exo.mot ? cap(exo.mot) : 'Série') + ' ' + (i + 1);
+  function fmtSets(exo, sets) {
+    if (exo.unite === 's') return sets.map(s => (s.s != null ? fmtNum(s.s) : '?') + ' s').join(' · ');
+    const kgs = sets.map(s => s.kg);
+    const reps = sets.map(s => (s.reps != null ? fmtNum(s.reps) : '?')).join(' · ');
+    if (kgs.every(k => k == null)) return reps + ' reps';
+    if (kgs.every(k => k === kgs[0])) return fmtNum(kgs[0]) + ' kg × ' + reps;
+    return sets.map(s => (s.kg != null ? fmtNum(s.kg) + ' kg × ' : '') + (s.reps != null ? fmtNum(s.reps) : '?')).join(' · ');
+  }
+  function setField(eid, i, f, val, ph, unit, mode, lbl) {
+    const id = 's-' + eid + '-' + i + '-' + f;
+    return '<label class="set-field" for="' + id + '"><input id="' + id + '" data-e="' + eid + '" data-i="' + i + '" data-f="' + f + '"' +
+      ' inputmode="' + mode + '" autocomplete="off" enterkeyhint="next" maxlength="6"' +
+      ' value="' + (val != null ? fmtNum(val) : '') + '" placeholder="' + (ph != null ? fmtNum(ph) : '') + '"' +
+      ' aria-label="' + esc(lbl + ', ' + unit) + '"><span aria-hidden="true">' + unit + '</span></label>';
+  }
+  function exoCard(exo, n, sid, date, sets) {
+    const last = lastSets(sid, exo.id, date);
+    const timed = exo.unite === 's';
+    let rows = '';
+    for (let i = 0; i < exo.series; i++) {
+      const s = sets[i] || {};
+      const p = last ? (last.sets[i] || last.sets[last.sets.length - 1]) : null;
+      const lbl = setLabel(exo, i);
+      rows += '<div class="set-row' + (timed ? ' timed' : '') + '"><span class="set-n">' + esc(lbl) + '</span>' +
+        (timed
+          ? setField(exo.id, i, 's', s.s, p && p.s, 'sec', 'numeric', lbl)
+          : setField(exo.id, i, 'kg', s.kg, p && p.kg, 'kg', 'decimal', lbl) + setField(exo.id, i, 'reps', s.reps, p && p.reps, 'reps', 'numeric', lbl)) +
+        '<span class="set-ok" aria-hidden="true">' + (hitTop(exo, s) ? CHECK : '') + '</span></div>';
+    }
+    return '<article class="exo" data-e="' + exo.id + '">' +
+      '<header class="exo-head"><span class="exo-num">' + (n + 1) + '</span><div>' +
+      '<h3 class="exo-name">' + esc(exo.nom) + '</h3>' +
+      '<p class="exo-goal">' + esc(goalText(exo)) + (exo.detail ? ' · ' + esc(exo.detail) : '') + '</p>' +
+      (shouldGoUp(exo, last) ? '<span class="badge-up">' + ICON_UPARROW + 'Monte la charge</span>' : '') +
+      '</div></header>' +
+      '<p class="exo-last">' + (last
+        ? 'Dernière fois (' + esc(fmtShort.format(dateOf(last.date))) + ') : <b>' + esc(fmtSets(exo, last.sets)) + '</b>'
+        : 'Première fois. Note tout : la prochaine fois, tu sauras quoi battre.') + '</p>' +
+      '<div class="sets">' + rows + '</div>' +
+      (last ? '<button type="button" class="exo-fill" data-fill="' + exo.id + '">Reprendre la dernière fois</button>' : '') +
+      '</article>';
+  }
+
+  let seanceOpen = null; // { sid, date, warned }
+  function openSeance(sid) {
+    if (!PROGRAMME || !PROGRAMME.seances[sid] || state.view > todayKey()) return;
+    commitNote();
+    seanceOpen = { sid, date: state.view, warned: false };
+    const prog = PROGRAMME.seances[sid];
+    const h = state.habits.find(x => x.id === sid);
+    $('#seance-title').textContent = (h && h.label) || prog.nom;
+    $('#seance-date').textContent = cap(fmtLong.format(dateOf(seanceOpen.date)));
+    const day = state.days[seanceOpen.date];
+    const cur = (day && day.muscu && day.muscu[sid]) || {};
+    $('#seance-body').innerHTML = '<div class="seance-inner">' +
+      prog.exos.map((exo, n) => exoCard(exo, n, sid, seanceOpen.date, cur[exo.id] || [])).join('') + '</div>';
+    $('#seance-body').scrollTop = 0;
+    renderSeanceFoot();
+    $('#seance').hidden = false;
+    document.documentElement.classList.add('locked');
+    $('#seance-close').focus();
+  }
+  function closeSeance() {
+    if (!seanceOpen) return;
+    const sid = seanceOpen.sid;
+    seanceOpen = null;
+    $('#seance').hidden = true;
+    document.documentElement.classList.remove('locked');
+    renderAll();
+    const row = document.getElementById('h-' + sid);
+    if (row && row.offsetParent) row.focus();
+  }
+  function renderSeanceFoot() {
+    const { sid, date, warned } = seanceOpen;
+    $('#seance-foot').innerHTML = isDone(sid, date)
+      ? '<div class="seance-done"><span>Séance validée. Respect.</span><button type="button" class="btn" data-sact="undo">Annuler la validation</button></div>'
+      : (warned ? '<p class="seance-warn">T\'as rien noté. T\'as vraiment fait la séance ?</p>' : '') +
+        '<button type="button" class="btn primary seance-go" data-sact="finish">' + (warned ? 'Oui, valider quand même' : 'Terminer la séance') + '</button>';
+  }
+  function saveSet(eid, i, f, raw) {
+    const { sid, date } = seanceOpen;
+    const day = state.days[date];
+    const muscu = day && day.muscu ? JSON.parse(JSON.stringify(day.muscu)) : {};
+    const ses = muscu[sid] || (muscu[sid] = {});
+    const sets = ses[eid] || (ses[eid] = []);
+    while (sets.length <= i) sets.push({});
+    const v = parseNum(raw, f === 's' ? 36000 : 1000);
+    if (v == null) delete sets[i][f]; else sets[i][f] = v;
+    while (sets.length && !Object.keys(sets[sets.length - 1]).length) sets.pop();
+    if (!sets.length) delete ses[eid];
+    if (!Object.keys(ses).length) delete muscu[sid];
+    setDay(date, { muscu: Object.keys(muscu).length ? muscu : undefined });
+    if (seanceOpen.warned) { seanceOpen.warned = false; renderSeanceFoot(); }
+  }
+  function refreshTick(input) {
+    const exo = PROGRAMME.seances[seanceOpen.sid].exos.find(e => e.id === input.dataset.e);
+    const day = state.days[seanceOpen.date];
+    const sets = day && day.muscu && day.muscu[seanceOpen.sid] && day.muscu[seanceOpen.sid][input.dataset.e];
+    const ok = input.closest('.set-row').querySelector('.set-ok');
+    if (exo && ok) ok.innerHTML = hitTop(exo, sets && sets[+input.dataset.i]) ? CHECK : '';
   }
 
   // ---------- notifs (version GitHub uniquement) ----------
@@ -840,17 +1269,14 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
   let leaveTimer = 0;
   function toggle(id, on, input) {
     if (state.view > todayKey()) return;
-    const cur = state.days[state.view] || { done: {} };
-    const before = doneNow(cur);
-    const done = { ...(cur.done || {}) };
-    if (on) done[id] = true; else delete done[id];
-    setDay(state.view, { done });
-    const after = doneNow(state.days[state.view]);
+    const before = doneOn(state.view);
+    setHabitDone(id, state.view, on);
+    const after = doneOn(state.view);
     const row = input.closest('.habit');
     if (row) row.classList.toggle('on', on);
     renderBoard();
     renderStats();
-    if (on && after === state.habits.length && before < after) burst();
+    if (on && after === plannedFor(state.view).length && before < after) burst();
 
     // Une case cochée s'efface de la liste ; une case décochée y revient tout de suite.
     const li = input.closest('li');
@@ -912,13 +1338,25 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
     } else if (act === 'del') {
       d.splice(i, 1);
       renderEditor();
+    } else if (act === 'jour') {
+      const j = +b.dataset.j;
+      const set = new Set(d[i].jours || []);
+      if (set.has(j)) set.delete(j); else set.add(j);
+      d[i].jours = [...set].sort((a, b2) => a - b2);
+      b.classList.toggle('on', set.has(j));
+      b.setAttribute('aria-pressed', String(set.has(j)));
     } else if (act === 'cancel') {
       state.editing = false; state.draft = null;
       renderAll();
       $('#edit-btn').focus();
     } else if (act === 'save') {
       const cleaned = d
-        .map(h => ({ id: h.id, label: String(h.label || '').trim().slice(0, 40), hint: String(h.hint || '').trim().slice(0, 60) }))
+        .map(h => {
+          const o = { id: h.id, label: String(h.label || '').trim().slice(0, 40), hint: String(h.hint || '').trim().slice(0, 90) };
+          const j = cleanJours(h.jours);
+          if (j) o.jours = j;
+          return o;
+        })
         .filter(h => h.label);
       if (!cleaned.length) { toast('Zéro habitude ? Non. Garde-en au moins une.'); return; }
       state.habits = cleaned;
@@ -941,7 +1379,7 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
   });
   $('#edit-btn').addEventListener('click', () => {
     state.editing = true;
-    state.draft = state.habits.map(h => ({ ...h }));
+    state.draft = state.habits.map(cloneHabit);
     renderHabits();
     const first = document.querySelector('.edit-fields .field');
     if (first) first.focus();
@@ -968,6 +1406,65 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
 
   $('#quote-next').addEventListener('click', () => { state.quoteShift++; renderQuote(); });
 
+  // Séance : ouverture depuis la liste, saisie série par série, validation.
+  $('#habits').addEventListener('click', e => {
+    const r = e.target.closest('button[data-seance]');
+    if (r && !state.editing) openSeance(r.dataset.seance);
+  });
+  $('#seance-close').addEventListener('click', closeSeance);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && seanceOpen) closeSeance(); });
+  $('#seance-body').addEventListener('input', e => {
+    const t = e.target;
+    if (!seanceOpen || !t.dataset.f) return;
+    saveSet(t.dataset.e, +t.dataset.i, t.dataset.f, t.value);
+    refreshTick(t);
+  });
+  $('#seance-body').addEventListener('click', e => {
+    const b = e.target.closest('[data-fill]');
+    if (!b || !seanceOpen) return;
+    let n = 0;
+    b.closest('.exo').querySelectorAll('input[data-f]').forEach(inp => {
+      if (inp.value || !inp.placeholder) return;
+      inp.value = inp.placeholder;
+      saveSet(inp.dataset.e, +inp.dataset.i, inp.dataset.f, inp.value);
+      refreshTick(inp);
+      n++;
+    });
+    toast(n ? 'Repris. Maintenant fais mieux que la dernière fois.' : 'Déjà rempli.');
+  });
+  $('#seance-foot').addEventListener('click', e => {
+    const b = e.target.closest('[data-sact]');
+    if (!b || !seanceOpen) return;
+    const { sid, date } = seanceOpen;
+    if (b.dataset.sact === 'undo') {
+      setHabitDone(sid, date, false);
+      renderSeanceFoot();
+      return;
+    }
+    const day = state.days[date];
+    const logged = !!(day && day.muscu && day.muscu[sid]);
+    if (!logged && !seanceOpen.warned) { seanceOpen.warned = true; renderSeanceFoot(); return; }
+    const before = doneOn(date);
+    setHabitDone(sid, date, true);
+    const all = doneOn(date) === plannedFor(date).length && before < doneOn(date);
+    closeSeance();
+    toast('Séance validée. Maintenant va manger.');
+    if (all) burst();
+  });
+
+  // Poids : enregistré dès que la valeur est plausible (25 kg ou plus).
+  $('#poids').addEventListener('input', e => {
+    const raw = e.target.value;
+    const n = parseNum(raw, 400);
+    if (raw.trim() && (n == null || n < 25)) return;
+    const k = state.view;
+    const cur = state.days[k];
+    if ((cur && cur.poids) === (n == null ? undefined : n)) return;
+    setDay(k, { poids: n == null ? undefined : n });
+    renderPoids();
+  });
+  $('#poids').addEventListener('blur', () => renderPoids());
+
   // Passage à minuit pendant que la page est ouverte, et ligne du coach qui suit l'heure.
   let lastToday = todayKey();
   function tick() {
@@ -987,6 +1484,7 @@ code{font-family:var(--font-mono);font-size:.88em;background:var(--bg);border:1p
   renderAll();
   renderQuote();
   setupPush();
+  loadProgramme();
   connect();
 })();
 </script>

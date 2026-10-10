@@ -1,7 +1,7 @@
 // Service worker : l'appli s'ouvre même sans réseau (réseau d'abord, cache sinon)
 // et affiche les notifs envoyées par .github/workflows/notifs.yml.
-const CACHE = 'jz-v2';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
+const CACHE = 'jz-v3';
+const SHELL = ['./', './index.html', './programme.json', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

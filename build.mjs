@@ -1,5 +1,5 @@
-// Génère la version GitHub Pages (docs/index.html) à partir de jamais-zero.html,
-// qui reste la source unique (c'est aussi le fichier publié sur claude.ai).
+// Génère la version GitHub Pages (docs/) à partir de jamais-zero.html et programme.json,
+// qui restent les sources uniques (ce sont aussi les fichiers publiés sur claude.ai).
 // Usage : node build.mjs
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 
@@ -15,6 +15,38 @@ let body = src.slice(split);
 const WEB_FLAG = 'const IS_WEB_BUILD = false;';
 if (!body.includes(WEB_FLAG)) throw new Error('IS_WEB_BUILD introuvable dans jamais-zero.html');
 body = body.replace(WEB_FLAG, 'const IS_WEB_BUILD = true;');
+
+// Programme de muscu : on refuse de mettre en ligne un fichier cassé.
+const ID_RE = /^[A-Za-z0-9_-]{1,40}$/;
+let programme;
+try {
+  programme = JSON.parse(readFileSync('programme.json', 'utf8'));
+} catch (e) {
+  console.error('programme.json est cassé : ' + e.message + '\nVérifie les virgules et les guillemets autour de la ligne indiquée.');
+  process.exit(1);
+}
+const problems = [];
+const seances = programme && programme.seances;
+if (!seances || typeof seances !== 'object') problems.push('il manque "seances".');
+else for (const [sid, s] of Object.entries(seances)) {
+  if (!ID_RE.test(sid)) problems.push(`séance "${sid}" : nom de séance invalide (lettres, chiffres, - et _ seulement).`);
+  if (!s || !Array.isArray(s.exos) || !s.exos.length) { problems.push(`séance "${sid}" : il faut une liste "exos".`); continue; }
+  const ids = new Set();
+  s.exos.forEach((e, i) => {
+    const where = `séance "${sid}", exo ${i + 1}`;
+    if (!e || !ID_RE.test(e.id || '')) problems.push(`${where} : "id" manquant ou invalide.`);
+    else if (ids.has(e.id)) problems.push(`${where} : "id" "${e.id}" déjà utilisé dans cette séance.`);
+    else ids.add(e.id);
+    if (!e || typeof e.nom !== 'string' || !e.nom.trim()) problems.push(`${where} : "nom" manquant.`);
+    if (!e || !Number.isInteger(e.series) || e.series < 1 || e.series > 10) problems.push(`${where} : "series" doit être un nombre entier entre 1 et 10.`);
+    const okReps = e && (e.unite === 's' || e.reps === 'max' || (Array.isArray(e.reps) && e.reps.length === 2 && e.reps.every(Number.isFinite) && e.reps[0] <= e.reps[1]));
+    if (!okReps) problems.push(`${where} : "reps" doit être [min, max], "max", ou mets "unite": "s".`);
+  });
+}
+if (problems.length) {
+  console.error('programme.json a des erreurs :\n- ' + problems.join('\n- '));
+  process.exit(1);
+}
 
 const html = `<!doctype html>
 <html lang="fr">
@@ -41,4 +73,5 @@ ${body}
 
 mkdirSync('docs', { recursive: true });
 writeFileSync('docs/index.html', html);
-console.log('docs/index.html généré');
+writeFileSync('docs/programme.json', JSON.stringify(programme, null, 2) + '\n');
+console.log('docs/index.html et docs/programme.json générés');
